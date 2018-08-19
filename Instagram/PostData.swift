@@ -19,6 +19,9 @@ class PostData: NSObject {
     var date: Date?
     var likes: [String] = []
     var isLiked: Bool = false
+    var comments: [String] = []
+    var isCommented: Bool = false
+    var tests: [String] = []
     
     init(snapshot: DataSnapshot, myId: String) {
         self.id = snapshot.key
@@ -39,11 +42,28 @@ class PostData: NSObject {
             self.likes = likes
         }
         
+        if let comments = valueDictionary["comments"] as? [String] {
+            self.comments = comments
+        }
+        
+        print("~~~~~~~~~~\(valueDictionary["test"])~~~~~~~~~~~~")
+
+        //ユーザがいいねしたかどうかの判定
         for likeId in self.likes {
             if likeId == myId {
+                print("DEBUG_PRINT: \(likeId)")
                 self.isLiked = true
                 break
             }
         }
+        
+        //ユーザがコメントしたかどうかの判定
+//        for commentId in self.comments {
+//            if commentId == myId {
+//                print("DEBUG_PRINT: \(commentId)")
+//                self.isCommented = true
+//                break
+//            }
+//        }
     }
 }

@@ -14,7 +14,9 @@ import FirebaseDatabase
 class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     @IBOutlet weak var tableView: UITableView!
     var postArray: [PostData] = []
-    
+    var comments = [:] as [String : Any]
+
+    var testComment: String = "testComment"
     // DatabaseのobserveEventの登録状態を表す
     var observing = false
 
@@ -44,7 +46,10 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if self.observing == false {
                 // 要素が追加されたらpostArrayに追加してTableViewを再表示する
                 let postsRef = Database.database().reference().child(Const.PostPath)
+//                print(postsRef)
+
                 postsRef.observe(.childAdded, with: { snapshot in
+//                    print(snapshot)
                     print("DEBUG_PRINT: .childAddedイベントが発生しました。")
                     
                     // PostDataクラスを生成して受け取ったデータを設定する
@@ -116,7 +121,9 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
         cell.setPostData(postArray[indexPath.row])
         
         // セル内のボタンのアクションをソースコードで設定する
-        cell.likeButton.addTarget(self, action:#selector(handleButton(_:forEvent:)), for: .touchUpInside)
+        cell.likeButton.addTarget(self, action:#selector(handleLikeButton(_:forEvent:)), for: .touchUpInside)
+        // セル内のボタンのアクションをソースコードで設定する
+        cell.commentButton.addTarget(self, action:#selector(handleCommentButton(_:forEvent:)), for: .touchUpInside)
         
         return cell
     }
@@ -127,7 +134,7 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     // セル内のボタンがタップされた時に呼ばれるメソッド
-    @objc func handleButton(_ sender: UIButton, forEvent event: UIEvent) {
+    @objc func handleLikeButton(_ sender: UIButton, forEvent event: UIEvent) {
         print("DEBUG_PRINT: likeボタンがタップされました。")
         
         // タップされたセルのインデックスを求める
@@ -163,14 +170,43 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    // セル内のボタンがタップされた時に呼ばれるメソッド
+    @objc func handleCommentButton(_ sender: UIButton, forEvent event: UIEvent) {
+        print("DEBUG_PRINT: commentボタンがタップされました。")
+        
+        // タップされたセルのインデックスを求める
+        let touch = event.allTouches?.first
+        let point = touch!.location(in: self.tableView)
+        let indexPath = tableView.indexPathForRow(at: point)
+        
+        // 配列からタップされたインデックスのデータを取り出す
+        let postData = postArray[indexPath!.row]
+        
+        // Firebaseに保存するデータの準備
+        if let uid = Auth.auth().currentUser?.uid {
+            if postData.isCommented {
+                // すでにコメントをしていた場合はコメントを解除するためIDを取り除く
+                var index = -1
+                for commentId in postData.comments {
+                    if commentId == uid {
+                        // 削除するためにインデックスを保持しておく
+                        index = postData.comments.index(of: commentId)!
+                        break
+                    }
+                }
+                postData.comments.remove(at: index)
+            } else {
+                postData.comments.append(uid)
+            }
+            
+            // 増えたcommentをFirebaseに保存する
+            let postRef = Database.database().reference().child(Const.PostPath).child(postData.id!)
+//            comments = ["comments": postData.comments] as [String : Any]
+            comments = ["comments": postData.comments, "test": testComment] as [String : Any]
+            postRef.updateChildValues(comments)
+            print("complete")
+            
+        }
     }
-    */
 
 }

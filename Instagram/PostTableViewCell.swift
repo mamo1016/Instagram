@@ -14,6 +14,9 @@ class PostTableViewCell: UITableViewCell {
     @IBOutlet weak var likeLabel: UILabel!
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var captionLabel: UILabel!
+    @IBOutlet weak var commentButton: UIButton!
+    @IBOutlet weak var commentLabel: UILabel!
+    @IBOutlet weak var testLabel: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -33,6 +36,16 @@ class PostTableViewCell: UITableViewCell {
         let likeNumber = postData.likes.count
         likeLabel.text = "\(likeNumber)"
         
+        let commentNumber = postData.comments.count
+        commentLabel.text = "\(commentNumber)"
+
+        let comment = postData.comments
+
+        testLabel.text = "\(comment)"
+        
+//        let homeViewController = HomeViewController()
+//        let test = homeViewController.comments["test"]//comments["test"] as? String
+//        print("--\(String(describing: test))--")
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         let dateString = formatter.string(from: postData.date!)
@@ -45,5 +58,14 @@ class PostTableViewCell: UITableViewCell {
             let buttonImage = UIImage(named: "like_none")
             self.likeButton.setImage(buttonImage, for: .normal)
         }
+        
+//        if postData.isCommented {
+//            let buttonImage = UIImage(named: "comment")
+//            self.commentButton.setImage(buttonImage, for: .normal)
+//        } else {
+//            print("-------------------")
+//            let buttonImage = UIImage(named: "like_none")
+//            self.commentButton.setImage(buttonImage, for: .normal)
+//        }
     }
 }
