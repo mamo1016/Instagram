@@ -42,14 +42,18 @@ class PostData: NSObject {
             self.likes = likes
         }
         
-        if let comments = valueDictionary["comments"] as? [String] {
-            self.comments = comments
+        if let comments = valueDictionary["comments"] as? String {
+            self.comments = [comments]
         }
         
-        print("~~~~~~~~~~\(valueDictionary["test"])~~~~~~~~~~~~")
+        if let test = valueDictionary["test"] as? String {
+            self.tests = [test]
+        }
+
+//        print("~~~~~~~~~~\(String(describing: valueDictionary["test"]))~~~~~~~~~~~~")
 
         //ユーザがいいねしたかどうかの判定
-        for likeId in self.likes {
+        for likeId in self.likes { //likes配列から自分のIDを検索
             if likeId == myId {
                 print("DEBUG_PRINT: \(likeId)")
                 self.isLiked = true

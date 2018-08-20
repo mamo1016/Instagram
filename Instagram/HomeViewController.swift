@@ -77,12 +77,14 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
                                 break
                             }
                         }
-                        
+                        print(postData.comments)
                         // 差し替えるため一度削除する
                         self.postArray.remove(at: index)
                         
                         // 削除したところに更新済みのデータを追加する
                         self.postArray.insert(postData, at: index)
+                        
+                        print(postData.comments)
                         
                         // TableViewを再表示する
                         self.tableView.reloadData()
@@ -107,7 +109,6 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 observing = false
             }
         }
-        
     }
     
 
@@ -146,20 +147,20 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let postData = postArray[indexPath!.row]
         
         // Firebaseに保存するデータの準備
-        if let uid = Auth.auth().currentUser?.uid {
-            if postData.isLiked {
+        if let uid = Auth.auth().currentUser?.uid { //ログインしているとき
+            if postData.isLiked { //投稿にいいねがされているとき
                 // すでにいいねをしていた場合はいいねを解除するためIDを取り除く
                 var index = -1
-                for likeId in postData.likes {
-                    if likeId == uid {
+                for likeId in postData.likes { //いいねしているIDの中から自分のIDを探す
+                    if likeId == uid { //自分のIDがあった場合
                         // 削除するためにインデックスを保持しておく
                         index = postData.likes.index(of: likeId)!
                         break
                     }
                 }
-                postData.likes.remove(at: index)
-            } else {
-                postData.likes.append(uid)
+                postData.likes.remove(at: index) //いいねしたindexを消す
+            } else {    //いいねをしていなかった場合
+                postData.likes.append(uid) //自分のユーザIDを追加
             }
             
             // 増えたlikesをFirebaseに保存する
@@ -184,29 +185,32 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         // Firebaseに保存するデータの準備
         if let uid = Auth.auth().currentUser?.uid {
-            if postData.isCommented {
-                // すでにコメントをしていた場合はコメントを解除するためIDを取り除く
-                var index = -1
-                for commentId in postData.comments {
-                    if commentId == uid {
-                        // 削除するためにインデックスを保持しておく
-                        index = postData.comments.index(of: commentId)!
-                        break
-                    }
-                }
-                postData.comments.remove(at: index)
-            } else {
-                postData.comments.append(uid)
-            }
+//            if postData.isCommented {
+//                // すでにコメントをしていた場合はコメントを解除するためIDを取り除く
+//                var index = -1
+//                for commentId in postData.comments {
+//                    if commentId == uid {
+//                        // 削除するためにインデックスを保持しておく
+//                        index = postData.comments.index(of: commentId)!
+//                        break
+//                    }
+//                }
+//                postData.comments.remove(at: index)
+//            } else {
+//                postData.comments.append(uid)
+//            }
+//            postData.comments.append(uid)
             
+            postData.comments.append("comment!")
+//            postData.name.append(postData.name)
+            print(postArray)
+
             // 増えたcommentをFirebaseに保存する
             let postRef = Database.database().reference().child(Const.PostPath).child(postData.id!)
 //            comments = ["comments": postData.comments] as [String : Any]
-            comments = ["comments": postData.comments, "test": testComment] as [String : Any]
+            comments = ["comments": postData.comments] as [String : Any]
             postRef.updateChildValues(comments)
-            print("complete")
-            
         }
+        self.tableView.reloadData()
     }
-
 }

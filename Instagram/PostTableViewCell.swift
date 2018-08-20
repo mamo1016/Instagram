@@ -17,7 +17,7 @@ class PostTableViewCell: UITableViewCell {
     @IBOutlet weak var commentButton: UIButton!
     @IBOutlet weak var commentLabel: UILabel!
     @IBOutlet weak var testLabel: UILabel!
-    
+    let homeViewController = HomeViewController()
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -39,10 +39,14 @@ class PostTableViewCell: UITableViewCell {
         let commentNumber = postData.comments.count
         commentLabel.text = "\(commentNumber)"
 
-        let comment = postData.comments
-
-        testLabel.text = "\(comment)"
+//        let tests = postData.tests
+        let comments =  postData.comments
+        let name =  postData.name
         
+        
+        testLabel.text = "\(String(describing: comments))"
+//        testLabel.text = "\(String(describing: name)):\(comments)"
+
 //        let homeViewController = HomeViewController()
 //        let test = homeViewController.comments["test"]//comments["test"] as? String
 //        print("--\(String(describing: test))--")
