@@ -15,11 +15,14 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var tableView: UITableView!
     var postArray: [PostData] = []
     var comments = [:] as [String : Any]
+    var tests = [:] as [String : Any]
 
     var testComment: String = "testComment"
     // DatabaseのobserveEventの登録状態を表す
     var observing = false
-
+    var commentText: String!
+    var alertOpen: Bool = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -77,14 +80,12 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
                                 break
                             }
                         }
-                        print(postData.comments)
                         // 差し替えるため一度削除する
                         self.postArray.remove(at: index)
                         
                         // 削除したところに更新済みのデータを追加する
                         self.postArray.insert(postData, at: index)
                         
-                        print(postData.comments)
                         
                         // TableViewを再表示する
                         self.tableView.reloadData()
@@ -174,43 +175,132 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // セル内のボタンがタップされた時に呼ばれるメソッド
     @objc func handleCommentButton(_ sender: UIButton, forEvent event: UIEvent) {
         print("DEBUG_PRINT: commentボタンがタップされました。")
-        
-        // タップされたセルのインデックスを求める
-        let touch = event.allTouches?.first
-        let point = touch!.location(in: self.tableView)
-        let indexPath = tableView.indexPathForRow(at: point)
-        
-        // 配列からタップされたインデックスのデータを取り出す
-        let postData = postArray[indexPath!.row]
-        
-        // Firebaseに保存するデータの準備
-        if let uid = Auth.auth().currentUser?.uid {
-//            if postData.isCommented {
-//                // すでにコメントをしていた場合はコメントを解除するためIDを取り除く
-//                var index = -1
-//                for commentId in postData.comments {
-//                    if commentId == uid {
-//                        // 削除するためにインデックスを保持しておく
-//                        index = postData.comments.index(of: commentId)!
-//                        break
-//                    }
-//                }
-//                postData.comments.remove(at: index)
-//            } else {
-//                postData.comments.append(uid)
-//            }
-//            postData.comments.append(uid)
-            
-            postData.comments.append("comment!")
-//            postData.name.append(postData.name)
-            print(postArray)
+        self.commentText = ""
+        self.alertOpen = false
+        alert()
+        // dataを取得するまで待ちます
+        wait( {  self.alertOpen } ) {
+            print("wait")
+            if self.commentText != ""  && self.commentText != nil{
+                // 取得しました
+                print("finish")
+                // タップされたセルのインデックスを求める
+                let touch = event.allTouches?.first
+                let point = touch!.location(in: self.tableView)
+                let indexPath = self.tableView.indexPathForRow(at: point)
+                
+                // 配列からタップされたインデックスのデータを取り出す
+                let postData = self.postArray[indexPath!.row]
+                
+                // Firebaseに保存するデータの準備
+                if let uid = Auth.auth().currentUser?.uid {
+                    print(Auth.auth().currentUser?.displayName)
+                    //            if postData.isCommented {
+                    //                // すでにコメントをしていた場合はコメントを解除するためIDを取り除く
+                    //                var index = -1
+                    //                for commentId in postData.comments {
+                    //                    if commentId == uid {
+                    //                        // 削除するためにインデックスを保持しておく
+                    //                        index = postData.comments.index(of: commentId)!
+                    //                        break
+                    //                    }
+                    //                }
+                    //                postData.comments.remove(at: index)
+                    //            } else {
+                    //                postData.comments.append(uid)
+                    //            }
+                    //            postData.comments.append(uid)
+                    
+                    postData.comments.append("\((Auth.auth().currentUser?.displayName)!):\((self.commentText)!)")
+                    //            postData.tests.append("(Auth.auth().currentUser?.displayName)!")
+                    
+                    
+                    // 増えたcommentをFirebaseに保存する
+                    let postRef = Database.database().reference().child(Const.PostPath).child(postData.id!)
+                    //            comments = ["comments": postData.comments] as [String : Any]
+                    self.comments = ["comments": postData.comments] as [String : Any]
+                    self.tests = ["tests": postData.tests] as [String : Any]
+                    postRef.updateChildValues(self.comments)
+                    postRef.updateChildValues(self.tests)
+                }
+                self.tableView.reloadData()
+            }
 
-            // 増えたcommentをFirebaseに保存する
-            let postRef = Database.database().reference().child(Const.PostPath).child(postData.id!)
-//            comments = ["comments": postData.comments] as [String : Any]
-            comments = ["comments": postData.comments] as [String : Any]
-            postRef.updateChildValues(comments)
         }
-        self.tableView.reloadData()
+    }
+    
+    func alert(){
+        // テキストフィールド付きアラート表示
+        
+        let alert = UIAlertController(title: "Comment", message: "Input Message", preferredStyle: .alert)
+        self.alertOpen = true
+
+        // OKボタンの設定
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: {
+            (action:UIAlertAction!) -> Void in
+            
+            // OKを押した時入力されていたテキストを表示
+            if let textFields = alert.textFields {
+                
+                // アラートに含まれるすべてのテキストフィールドを調べる
+                for textField in textFields {
+//                    self.label()
+//                    self.add.text = textField.text!
+                    print(textField.text!)
+                    self.commentText = textField.text
+                }
+                print(self.commentText)
+
+            }
+            self.alertOpen = false
+            
+            
+        })
+        alert.addAction(okAction)
+        
+        // キャンセルボタンの設定
+//        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+//        alert.addAction(cancelAction)
+        
+        // キャンセルボタン
+        let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .cancel, handler:{
+            // ボタンが押された時の処理を書く（クロージャ実装）
+            (action: UIAlertAction!) -> Void in
+            self.alertOpen = false
+//            print("Cancel")
+        })
+        alert.addAction(cancelAction)
+
+        
+        // テキストフィールドを追加
+        alert.addTextField(configurationHandler: {(textField: UITextField!) -> Void in
+            textField.placeholder = "テキスト"
+        })
+        
+        alert.view.setNeedsLayout() // シミュレータの種類によっては、これがないと警告が発生
+        
+        // アラートを画面に表示
+        self.present(alert, animated: true, completion: nil)
+        
+    }
+    
+    func wait(_ waitContinuation: @escaping (()->Bool), compleation: @escaping (()->Void)) {
+        var wait = waitContinuation()
+        // 0.01秒周期で待機条件をクリアするまで待ちます。
+        let semaphore = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            while wait {
+                DispatchQueue.main.async {
+                    wait = waitContinuation()
+                    semaphore.signal()
+                }
+                semaphore.wait()
+                Thread.sleep(forTimeInterval: 0.01)
+            }
+            // 待機条件をクリアしたので通過後の処理を行います。
+            DispatchQueue.main.async {
+                compleation()
+            }
+        }
     }
 }

@@ -42,12 +42,12 @@ class PostData: NSObject {
             self.likes = likes
         }
         
-        if let comments = valueDictionary["comments"] as? String {
-            self.comments = [comments]
+        if let comments = valueDictionary["comments"] as? [String] {
+            self.comments = comments
         }
         
-        if let test = valueDictionary["test"] as? String {
-            self.tests = [test]
+        if let test = valueDictionary["test"] as? [String] {
+            self.tests = test
         }
 
 //        print("~~~~~~~~~~\(String(describing: valueDictionary["test"]))~~~~~~~~~~~~")

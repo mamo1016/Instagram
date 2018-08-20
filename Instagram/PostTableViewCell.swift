@@ -41,9 +41,8 @@ class PostTableViewCell: UITableViewCell {
 
 //        let tests = postData.tests
         let comments =  postData.comments
-        let name =  postData.name
-        
-        
+        let tests =  postData.tests
+//        let name =  postData.name
         testLabel.text = "\(String(describing: comments))"
 //        testLabel.text = "\(String(describing: name)):\(comments)"
 
