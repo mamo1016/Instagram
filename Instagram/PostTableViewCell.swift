@@ -40,10 +40,16 @@ class PostTableViewCell: UITableViewCell {
         commentLabel.text = "\(commentNumber)"
 
 //        let tests = postData.tests
-        let comments =  postData.comments
-        let tests =  postData.tests
 //        let name =  postData.name
-        testLabel.text = "\(String(describing: comments))"
+//        print(postData.comments)
+        testLabel.text?.removeAll()
+        for commentText in postData.comments {
+//            myLabel.text = myLabel.text?.stringByAppendingString("Swift!")
+            testLabel.text = testLabel.text?.appendingFormat("\(String(describing: commentText))\n")
+        }
+
+//        testLabel.text = "\(String(describing: comments))"
+        
 //        testLabel.text = "\(String(describing: name)):\(comments)"
 
 //        let homeViewController = HomeViewController()

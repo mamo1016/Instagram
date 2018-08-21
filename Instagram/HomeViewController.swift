@@ -174,62 +174,22 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // セル内のボタンがタップされた時に呼ばれるメソッド
     @objc func handleCommentButton(_ sender: UIButton, forEvent event: UIEvent) {
+        // タップされたセルのインデックスを求める
+        let touch = event.allTouches?.first
+        let point = touch!.location(in: self.tableView)
+        let indexPath = self.tableView.indexPathForRow(at: point)
+        
+        // 配列からタップされたインデックスのデータを取り出す
+        let postData = self.postArray[indexPath!.row]
+
         print("DEBUG_PRINT: commentボタンがタップされました。")
         self.commentText = ""
         self.alertOpen = false
-        alert()
-        // dataを取得するまで待ちます
-        wait( {  self.alertOpen } ) {
-            print("wait")
-            if self.commentText != ""  && self.commentText != nil{
-                // 取得しました
-                print("finish")
-                // タップされたセルのインデックスを求める
-                let touch = event.allTouches?.first
-                let point = touch!.location(in: self.tableView)
-                let indexPath = self.tableView.indexPathForRow(at: point)
-                
-                // 配列からタップされたインデックスのデータを取り出す
-                let postData = self.postArray[indexPath!.row]
-                
-                // Firebaseに保存するデータの準備
-                if let uid = Auth.auth().currentUser?.uid {
-                    print(Auth.auth().currentUser?.displayName)
-                    //            if postData.isCommented {
-                    //                // すでにコメントをしていた場合はコメントを解除するためIDを取り除く
-                    //                var index = -1
-                    //                for commentId in postData.comments {
-                    //                    if commentId == uid {
-                    //                        // 削除するためにインデックスを保持しておく
-                    //                        index = postData.comments.index(of: commentId)!
-                    //                        break
-                    //                    }
-                    //                }
-                    //                postData.comments.remove(at: index)
-                    //            } else {
-                    //                postData.comments.append(uid)
-                    //            }
-                    //            postData.comments.append(uid)
-                    
-                    postData.comments.append("\((Auth.auth().currentUser?.displayName)!):\((self.commentText)!)")
-                    //            postData.tests.append("(Auth.auth().currentUser?.displayName)!")
-                    
-                    
-                    // 増えたcommentをFirebaseに保存する
-                    let postRef = Database.database().reference().child(Const.PostPath).child(postData.id!)
-                    //            comments = ["comments": postData.comments] as [String : Any]
-                    self.comments = ["comments": postData.comments] as [String : Any]
-                    self.tests = ["tests": postData.tests] as [String : Any]
-                    postRef.updateChildValues(self.comments)
-                    postRef.updateChildValues(self.tests)
-                }
-                self.tableView.reloadData()
-            }
-
-        }
+        alert(postData: postData)
+        
     }
     
-    func alert(){
+    func alert(postData: PostData){
         // テキストフィールド付きアラート表示
         
         let alert = UIAlertController(title: "Comment", message: "Input Message", preferredStyle: .alert)
@@ -244,8 +204,6 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 // アラートに含まれるすべてのテキストフィールドを調べる
                 for textField in textFields {
-//                    self.label()
-//                    self.add.text = textField.text!
                     print(textField.text!)
                     self.commentText = textField.text
                 }
@@ -254,13 +212,27 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
             }
             self.alertOpen = false
             
-            
+            if self.commentText != ""  && self.commentText != nil{
+                // 取得しました
+                print("finish")
+                
+                // Firebaseに保存するデータの準備
+                if ((Auth.auth().currentUser?.uid) != nil) {
+                    postData.comments.append("\((Auth.auth().currentUser?.displayName)!): \((self.commentText)!)")
+                    
+                    // 増えたcommentをFirebaseに保存する
+                    let postRef = Database.database().reference().child(Const.PostPath).child(postData.id!)
+                    //            comments = ["comments": postData.comments] as [String : Any]
+                    self.comments = ["comments": postData.comments] as [String : Any]
+                    self.tests = ["tests": postData.tests] as [String : Any]
+                    postRef.updateChildValues(self.comments)
+                    postRef.updateChildValues(self.tests)
+                }
+                self.tableView.reloadData()
+            }
+        
         })
         alert.addAction(okAction)
-        
-        // キャンセルボタンの設定
-//        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-//        alert.addAction(cancelAction)
         
         // キャンセルボタン
         let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .cancel, handler:{
@@ -283,6 +255,12 @@ class HomeViewController: UIViewController, UITableViewDataSource, UITableViewDe
         self.present(alert, animated: true, completion: nil)
         
     }
+    
+    func save() {
+        
+    }
+    
+    
     
     func wait(_ waitContinuation: @escaping (()->Bool), compleation: @escaping (()->Void)) {
         var wait = waitContinuation()
